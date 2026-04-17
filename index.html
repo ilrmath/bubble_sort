@@ -451,7 +451,7 @@
 </head>
 <body>
   <div class="header">
-    <h1>バブルソート 体感学習</h1>
+    <h1>バブルソート (添字は1から)</h1>
     <div id="hint-text">読み込み中...</div>
     <div class="controls">
       <button id="backBtn" onclick="undo()">一つ戻る</button>
@@ -488,10 +488,10 @@
 <script>
 const pseudocode = [
   { no: 1, depth: 0, text: '', endDepths: [] },
-  { no: 2, depth: 0, text: 'i を 1 から 要素数(list)-1 まで 1 ずつ増やしながら', endDepths: [] },
-  { no: 3, depth: 1, text: 'j を 1 から 要素数(list)-i まで 1 ずつ増やしながら', endDepths: [] },
-  { no: 4, depth: 2, text: 'もし list[j] < list[j+1] ならば', endDepths: [] },
-  { no: 5, depth: 3, text: 'list[j] と list[j+1] を交換する', endDepths: [1,2,3] },
+  { no: 2, depth: 0, text: 'i を 要素数(list) から 2 まで 1 ずつ減らしながら', endDepths: [] },
+  { no: 3, depth: 1, text: 'j を 要素数(list) から i まで 1 ずつ減らしながら', endDepths: [] },
+  { no: 4, depth: 2, text: 'もし list[j-1] < list[j] ならば', endDepths: [] },
+  { no: 5, depth: 3, text: 'list[j-1] と list[j] を交換する', endDepths: [1,2,3] },
   { no: 6, depth: 0, text: 'list を表示する', endDepths: [] }
 ];
 
@@ -596,7 +596,7 @@ function initGame(){
     list: [...newList],
     initialList: [...newList],
     pass: 0,
-    j: 0,
+    j: newList.length - 1,
     history: [],
     finished: false,
     busy: false,
@@ -631,12 +631,12 @@ function undo(){
   render();
 }
 
-function currentRightFixedStart(){
-  return state.list.length - state.pass;
+function currentLeftFixedEnd(){
+  return state.pass;
 }
 
 function fixedRankText(idx){
-  const rank = state.list.length - idx;
+  const rank = idx + 1;
   if(rank === 1) return "最小要素は確定";
   if(rank === 2) return "第二小の要素は確定";
   if(rank === 3) return "第三小の要素は確定";
@@ -656,9 +656,9 @@ function render(){
 
     const topMarker = document.createElement("div");
     topMarker.className = "top-marker";
-    if(!state.finished && idx === state.j){
+    if(!state.finished && idx === state.j - 1){
       topMarker.innerHTML = `<span style="color:${getCss('--blue')}">左のカード</span>`;
-    } else if(!state.finished && idx === state.j + 1){
+    } else if(!state.finished && idx === state.j){
       topMarker.innerHTML = `<span style="color:${getCss('--green')}">右のカード</span>`;
     } else {
       topMarker.innerHTML = "&nbsp;";
@@ -667,9 +667,9 @@ function render(){
 
     const card = document.createElement("div");
     const classes = ["card"];
-    if(!state.finished && idx === state.j) classes.push("compare-left");
-    if(!state.finished && idx === state.j + 1) classes.push("compare-right");
-    if(idx >= currentRightFixedStart() && !state.finished) classes.push("fixed");
+    if(!state.finished && idx === state.j - 1) classes.push("compare-left");
+    if(!state.finished && idx === state.j) classes.push("compare-right");
+    if(idx < currentLeftFixedEnd() && !state.finished) classes.push("fixed");
     if(idx === state.flashFixed) classes.push("done-flash");
     card.className = classes.join(" ");
     card.textContent = val;
@@ -684,11 +684,11 @@ function render(){
     const bottom = document.createElement("div");
     bottom.className = "bottom-marker";
 
-    if(!state.finished && idx === state.j){
-      bottom.innerHTML = `<div class="j-marker-left">↑添字j</div>`;
-    } else if(!state.finished && idx === state.j + 1){
-      bottom.innerHTML = `<div class="j-marker-right">↑添字j+1</div>`;
-    } else if(idx >= currentRightFixedStart() && !state.finished){
+    if(!state.finished && idx === state.j - 1){
+      bottom.innerHTML = `<div class="j-marker-left">↑添字j-1</div>`;
+    } else if(!state.finished && idx === state.j){
+      bottom.innerHTML = `<div class="j-marker-right">↑添字j</div>`;
+    } else if(idx < currentLeftFixedEnd() && !state.finished){
       bottom.innerHTML = `<div class="fixed-label">${fixedRankText(idx)}</div>`;
     } else {
       bottom.innerHTML = "&nbsp;";
@@ -711,17 +711,17 @@ function updateHint(){
   const hint = document.getElementById("hint-text");
 
   if(state.finished){
-    hint.innerHTML = "✨ おめでとうございます。バブルソート完了です。右端から順に、小さい値が確定していきました。✨";
+    hint.innerHTML = "✨ おめでとうございます。バブルソート完了です。左端から順に、小さい値が確定していきました。✨";
     return;
   }
 
-  const a = state.list[state.j];
-  const b = state.list[state.j + 1];
+  const a = state.list[state.j - 1];
+  const b = state.list[state.j];
   const passNo = state.pass + 1;
   const totalPass = state.list.length - 1;
 
   hint.innerHTML =
-    `【${passNo} 回目 / ${totalPass} 回目】今は <b>list[${state.j + 1}] = ${a}</b> と <b>list[${state.j + 2}] = ${b}</b> を比べます。` +
+    `【${passNo} 回目 / ${totalPass} 回目】今は <b>list[${state.j}] = ${a}</b> と <b>list[${state.j + 1}] = ${b}</b> を比べます。` +
     `<br>左のほうが小さければ <b>交換する</b>、小さくなければ <b>そのまま</b> を押してください。`;
 }
 
@@ -731,8 +731,8 @@ function updateCodeHighlight(){
     return;
   }
 
-  const a = state.list[state.j];
-  const b = state.list[state.j + 1];
+  const a = state.list[state.j - 1];
+  const b = state.list[state.j];
   if(a < b){
     setActiveCodeLines([2,3,4,5]);
   } else {
@@ -744,8 +744,8 @@ function updateCompareHighlight(){
   const highlight = document.getElementById("compare-highlight");
   const label = document.getElementById("compare-label");
   const wrapper = document.getElementById("list-wrapper");
-  const left = document.getElementById(`card-list-${state.j}`);
-  const right = document.getElementById(`card-list-${state.j + 1}`);
+  const left = document.getElementById(`card-list-${state.j - 1}`);
+  const right = document.getElementById(`card-list-${state.j}`);
 
   if(state.finished || !left || !right){
     highlight.style.display = "none";
@@ -833,18 +833,18 @@ function playSwapSound(){
 
 function chooseSwap(){
   if(state.finished || state.busy) return;
-  const a = state.list[state.j];
-  const b = state.list[state.j + 1];
+  const a = state.list[state.j - 1];
+  const b = state.list[state.j];
   if(!(a < b)) return;
   saveHistory();
   playSwapSound();
-  animateSwap(state.j, state.j + 1, true);
+  animateSwap(state.j - 1, state.j, true);
 }
 
 function chooseKeep(){
   if(state.finished || state.busy) return;
-  const a = state.list[state.j];
-  const b = state.list[state.j + 1];
+  const a = state.list[state.j - 1];
+  const b = state.list[state.j];
   if(a < b) return;
   saveHistory();
   advanceStep(false);
@@ -927,23 +927,23 @@ function animateSwap(leftIdx, rightIdx, doSwap){
 }
 
 function advanceStep(swapped){
-  const limit = state.list.length - 1 - state.pass;
+  const limit = state.pass + 1;
 
-  if(state.j < limit - 1){
-    state.j += 1;
+  if(state.j > limit){
+    state.j -= 1;
     initCodePanel();
     render();
     return;
   }
 
-  state.flashFixed = limit;
+  state.flashFixed = limit - 1;
   initCodePanel();
   render();
 
   setTimeout(() => {
     state.flashFixed = null;
     state.pass += 1;
-    state.j = 0;
+    state.j = state.list.length - 1;
 
     if(state.pass >= state.list.length - 1){
       state.finished = true;
