@@ -268,6 +268,21 @@
     padding:6px 14px;
   }
 
+  #i-marker{
+    position:absolute;
+    display:none;
+    pointer-events:none;
+    z-index:7;
+    white-space:nowrap;
+    color:var(--pink);
+    font-size:18px;
+    font-weight:900;
+    background:rgba(255,246,251,.98);
+    border:2px solid rgba(232,91,163,.55);
+    border-radius:999px;
+    padding:5px 12px;
+  }
+
   .action-panel{
     position:absolute;
     left:50%;
@@ -464,6 +479,7 @@
       <div class="list-wrapper" id="list-wrapper">
         <div id="compare-highlight"></div>
         <div id="compare-label">ここを比べる</div>
+        <div id="i-marker">↓添字i</div>
 
         <div class="list-container" id="list-container"></div>
 
@@ -745,19 +761,23 @@ function updateCodeHighlight(){
 function updateCompareHighlight(){
   const highlight = document.getElementById("compare-highlight");
   const label = document.getElementById("compare-label");
+  const iMarker = document.getElementById("i-marker");
   const wrapper = document.getElementById("list-wrapper");
   const left = document.getElementById(`card-list-${state.j}`);
   const right = document.getElementById(`card-list-${state.j + 1}`);
+  const currentICard = document.getElementById(`card-list-${state.list.length - state.pass - 1}`);
 
-  if(state.finished || !left || !right){
+  if(state.finished || !left || !right || !currentICard){
     highlight.style.display = "none";
     label.style.display = "none";
+    iMarker.style.display = "none";
     return;
   }
 
   const wrapperRect = wrapper.getBoundingClientRect();
   const leftRect = left.getBoundingClientRect();
   const rightRect = right.getBoundingClientRect();
+  const iRect = currentICard.getBoundingClientRect();
 
   const x = leftRect.left - wrapperRect.left - 14;
   const y = leftRect.top - wrapperRect.top - 54;
@@ -773,6 +793,10 @@ function updateCompareHighlight(){
   label.style.display = "block";
   label.style.left = `${x + width / 2 - label.offsetWidth / 2}px`;
   label.style.top = `${y - 46}px`;
+
+  iMarker.style.display = "block";
+  iMarker.style.left = `${iRect.left - wrapperRect.left + iRect.width / 2 - iMarker.offsetWidth / 2}px`;
+  iMarker.style.top = `${y - 92}px`;
 }
 
 function ensureAudio(){
