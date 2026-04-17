@@ -1,0 +1,977 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>バブルソート 体感学習</title>
+<style>
+  :root{
+    --bg:#f3f4f6;
+    --panel:#ffffff;
+    --blue:#2b78d4;
+    --green:#2f8f46;
+    --red:#d73333;
+    --gold:#df9b16;
+    --pink:#e85ba3;
+    --pink-bg:#ffe1ef;
+    --card-border:#3e546b;
+    --code-highlight:#fff3bf;
+    --guide:#6d76b8;
+    --swap-a:#dff3ff;
+    --swap-b:#e8f7e8;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:"Helvetica Neue", Arial, sans-serif;
+    color:#222;
+  }
+
+  .header{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:#fff;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    text-align:center;
+    padding:10px 12px 12px;
+  }
+
+  .header h1{
+    margin:0 0 6px;
+    font-size:22px;
+    font-weight:800;
+  }
+
+  #hint-text{
+    min-height:48px;
+    margin:0 auto 8px;
+    max-width:1100px;
+    font-size:15px;
+    line-height:1.45;
+    font-weight:800;
+    color:var(--red);
+  }
+
+  .controls button{
+    background:#31485e;
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    padding:8px 15px;
+    margin:0 5px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .controls button:disabled{
+    background:#bfc6cd;
+    cursor:default;
+  }
+
+  .main{
+    max-width:1480px;
+    margin:12px auto 20px;
+    padding:0 8px;
+    display:grid;
+    grid-template-columns:minmax(820px, 1fr) 560px;
+    gap:8px;
+    align-items:start;
+  }
+
+  .workspace{
+    width:100%;
+    padding-left:24px;
+  }
+
+  .list-wrapper{
+    position:relative;
+    background:var(--panel);
+    border:1px solid #ddd;
+    border-radius:24px;
+    padding:108px 22px 180px 22px;
+    min-width:760px;
+    overflow:visible;
+  }
+
+  .list-container{
+    display:flex;
+    gap:28px;
+    align-items:flex-start;
+    position:relative;
+    z-index:2;
+  }
+
+  .cell{
+    width:88px;
+    min-height:320px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
+    flex:0 0 auto;
+  }
+
+  .top-marker{
+    height:52px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    font-weight:900;
+    font-size:15px;
+    line-height:1.05;
+    text-align:center;
+    white-space:pre-line;
+    position:relative;
+    z-index:5;
+    background:transparent;
+    padding:2px 6px;
+    border-radius:0;
+  }
+
+  .card{
+    width:78px;
+    height:106px;
+    border:5px solid var(--card-border);
+    border-radius:18px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    font-weight:900;
+    box-shadow:0 3px 9px rgba(0,0,0,.08);
+    user-select:none;
+    position:relative;
+    z-index:2;
+    transition:
+      background-color .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease,
+      opacity .18s ease;
+  }
+
+  .card.compare-left{
+    background:var(--swap-a);
+    border-color:var(--blue);
+    box-shadow:0 0 0 5px rgba(43,120,212,.14), 0 3px 9px rgba(0,0,0,.08);
+  }
+
+  .card.compare-right{
+    background:var(--swap-b);
+    border-color:var(--green);
+    box-shadow:0 0 0 5px rgba(47,143,70,.14), 0 3px 9px rgba(0,0,0,.08);
+  }
+
+  .card.fixed{
+    background:#fff6fb;
+    border-color:var(--pink);
+  }
+
+  .card.done-flash{
+    animation:doneFlash 1s ease-in-out 2;
+  }
+
+  @keyframes doneFlash{
+    0%{background:#fff;border-color:var(--card-border)}
+    25%{background:var(--pink-bg);border-color:var(--pink)}
+    50%{background:#fff;border-color:var(--pink)}
+    75%{background:var(--pink-bg);border-color:var(--pink)}
+    100%{background:#fff;border-color:var(--pink)}
+  }
+
+  .index-label{
+    margin-top:12px;
+    margin-bottom:12px;
+    color:#8c8c8c;
+    font-weight:800;
+    font-size:13px;
+    line-height:1;
+    position:relative;
+    z-index:5;
+    background:rgba(255,255,255,.94);
+    padding:3px 6px;
+    border-radius:8px;
+  }
+
+  .bottom-marker{
+    margin-top:16px;
+    height:98px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    font-weight:900;
+    line-height:1.08;
+    text-align:center;
+    position:relative;
+    z-index:5;
+    white-space:pre-line;
+  }
+
+  .j-marker-left{
+    color:var(--blue);
+    font-size:18px;
+    font-weight:900;
+    background:rgba(255,255,255,.94);
+    padding:2px 6px;
+    border-radius:8px;
+  }
+
+  .j-marker-right{
+    color:var(--green);
+    font-size:18px;
+    font-weight:900;
+    background:rgba(255,255,255,.94);
+    padding:2px 6px;
+    border-radius:8px;
+  }
+
+  .fixed-label{
+    margin-top:5px;
+    color:var(--pink);
+    font-size:13px;
+    font-weight:900;
+    border:2px solid rgba(232,91,163,.45);
+    background:rgba(255,225,239,.98);
+    border-radius:14px;
+    padding:5px 8px;
+    min-width:84px;
+  }
+
+  #compare-highlight{
+    position:absolute;
+    display:none;
+    pointer-events:none;
+    z-index:1;
+    background:rgba(110, 195, 120, .10);
+    border:4px dashed var(--gold);
+    border-radius:24px;
+  }
+
+  #compare-label{
+    position:absolute;
+    display:none;
+    pointer-events:none;
+    z-index:6;
+    white-space:nowrap;
+    color:#aa6f00;
+    font-size:20px;
+    font-weight:900;
+    background:rgba(255,251,237,.97);
+    border:2px solid rgba(223,155,22,.65);
+    border-radius:999px;
+    padding:6px 14px;
+  }
+
+  .action-panel{
+    position:absolute;
+    left:50%;
+    bottom:28px;
+    transform:translateX(-50%);
+    background:#fff;
+    border:3px solid #d9dee4;
+    border-radius:18px;
+    padding:12px 14px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    min-width:320px;
+    z-index:5;
+  }
+
+  .action-title{
+    font-size:18px;
+    font-weight:900;
+    color:#31485e;
+  }
+
+  .action-buttons{
+    display:flex;
+    gap:12px;
+  }
+
+  .action-buttons button{
+    border:none;
+    border-radius:12px;
+    padding:11px 18px;
+    font-size:16px;
+    font-weight:900;
+    cursor:pointer;
+    min-width:128px;
+  }
+
+  #swapBtn{
+    background:#2f8f46;
+    color:#fff;
+  }
+
+  #keepBtn{
+    background:#d8e2ec;
+    color:#1f3140;
+  }
+
+  .action-buttons button:disabled{
+    opacity:.55;
+    cursor:default;
+  }
+
+  .code-panel{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:24px;
+    padding:12px 14px 14px;
+    position:sticky;
+    top:82px;
+  }
+
+  .code-title{
+    font-size:18px;
+    font-weight:900;
+    margin-bottom:6px;
+  }
+
+  .code-lines{
+    font-family:"Times New Roman","Hiragino Mincho ProN","Yu Mincho","MS PMincho",serif;
+  }
+
+  .code-line{
+    display:grid;
+    grid-template-columns:48px 1fr;
+    align-items:center;
+    min-height:44px;
+    padding:1px 6px;
+    border-radius:10px;
+    transition:background-color .15s ease, box-shadow .15s ease;
+  }
+
+  .code-line.active{
+    background:var(--code-highlight);
+    box-shadow:inset 0 0 0 2px #e4c84a;
+  }
+
+  .code-no{
+    font-size:18px;
+    color:#000;
+    text-align:right;
+    padding-right:8px;
+    font-weight:700;
+  }
+
+  .code-body{
+    display:flex;
+    align-items:center;
+    min-width:0;
+  }
+
+  .indent-area{
+    position:relative;
+    height:40px;
+    flex:0 0 auto;
+  }
+
+  .indent-col{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:28px;
+  }
+
+  .indent-v{
+    position:absolute;
+    left:12px;
+    top:2px;
+    bottom:2px;
+    width:0;
+    border-left:3px solid var(--guide);
+  }
+
+  .indent-l{
+    position:absolute;
+    left:12px;
+    bottom:2px;
+    width:18px;
+    height:0;
+    border-bottom:3px solid var(--guide);
+  }
+
+  .code-text{
+    font-size:17px;
+    line-height:1.2;
+    white-space:nowrap;
+    margin-left:2px;
+  }
+
+  .swap-layer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:9;
+  }
+
+  .flying-card{
+    position:absolute;
+    width:78px;
+    height:106px;
+    border:5px solid var(--card-border);
+    border-radius:18px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    font-weight:900;
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+    left:0;
+    top:0;
+  }
+
+  @media (max-width: 1280px){
+    .main{
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    .code-panel{
+      position:static;
+    }
+    .workspace{
+      padding-left:0;
+    }
+    .list-wrapper{
+      min-width:0;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>バブルソート 体感学習</h1>
+    <div id="hint-text">読み込み中...</div>
+    <div class="controls">
+      <button id="backBtn" onclick="undo()">一つ戻る</button>
+      <button onclick="initGame()">リセット</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="workspace">
+      <div class="list-wrapper" id="list-wrapper">
+        <div id="compare-highlight"></div>
+        <div id="compare-label">ここを比べる</div>
+
+        <div class="list-container" id="list-container"></div>
+
+        <div class="action-panel">
+          <div class="action-title">下の2枚を見て判断</div>
+          <div class="action-buttons">
+            <button id="swapBtn" onclick="chooseSwap()">交換する</button>
+            <button id="keepBtn" onclick="chooseKeep()">そのまま</button>
+          </div>
+        </div>
+
+        <div class="swap-layer" id="swap-layer"></div>
+      </div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-title">対応する疑似コード</div>
+      <div class="code-lines" id="code-lines"></div>
+    </div>
+  </div>
+
+<script>
+const pseudocode = [
+  { no: 1, depth: 0, text: '', endDepths: [] },
+  { no: 2, depth: 0, text: 'i を 1 から 要素数(list)-1 まで 1 ずつ増やしながら', endDepths: [] },
+  { no: 3, depth: 1, text: 'j を 1 から 要素数(list)-i まで 1 ずつ増やしながら', endDepths: [] },
+  { no: 4, depth: 2, text: 'もし list[j] > list[j+1] ならば', endDepths: [] },
+  { no: 5, depth: 3, text: 'list[j] と list[j+1] を交換する', endDepths: [1,2,3] },
+  { no: 6, depth: 0, text: 'list を表示する', endDepths: [] }
+];
+
+let state = {
+  list: [],
+  initialList: [],
+  pass: 0,
+  j: 0,
+  history: [],
+  finished: false,
+  busy: false,
+  flashFixed: null
+};
+
+let audioCtx = null;
+
+function makeRandomList(){
+  const nums = [];
+  while(nums.length < 6){
+    const r = Math.floor(Math.random() * 90) + 10;
+    if(!nums.includes(r)) nums.push(r);
+  }
+  return nums;
+}
+
+function initCodePanel(){
+  const sourceList = state.initialList && state.initialList.length ? state.initialList : state.list;
+  const listText = sourceList.length ? sourceList.join(', ') : '56, 21, 78, 34, 12, 67';
+  pseudocode[0].text = `list ← [ ${listText} ]`;
+
+  const box = document.getElementById("code-lines");
+  box.innerHTML = "";
+
+  pseudocode.forEach(line => {
+    const row = document.createElement("div");
+    row.className = "code-line";
+    row.id = `code-line-${line.no}`;
+
+    const no = document.createElement("div");
+    no.className = "code-no";
+    no.textContent = `(${line.no})`;
+
+    const body = document.createElement("div");
+    body.className = "code-body";
+
+    const indentArea = document.createElement("div");
+    indentArea.className = "indent-area";
+    indentArea.style.width = `${line.depth * 28}px`;
+    renderIndent(indentArea, line.depth, line.endDepths || []);
+
+    const text = document.createElement("div");
+    text.className = "code-text";
+    if(line.no === 5){
+      text.textContent = line.text;
+    } else {
+      text.textContent = line.text;
+    }
+
+    body.appendChild(indentArea);
+    body.appendChild(text);
+
+    row.appendChild(no);
+    row.appendChild(body);
+    box.appendChild(row);
+  });
+}
+
+function renderIndent(container, depth, endDepths){
+  container.innerHTML = "";
+  const colWidth = 28;
+
+  for(let d = 1; d <= depth; d++){
+    const col = document.createElement("div");
+    col.className = "indent-col";
+    col.style.left = `${(d - 1) * colWidth}px`;
+
+    const v = document.createElement("div");
+    v.className = "indent-v";
+
+    // ★ここを変更：| 表示
+    v.style.borderLeft = "3px solid #444";
+
+    col.appendChild(v);
+
+    const isEnd = endDepths.includes(d);
+
+    if(isEnd){
+      const l = document.createElement("div");
+      l.className = "indent-l";
+
+      // ★∟ の横線を強調
+      l.style.borderBottom = "3px solid #444";
+
+      col.appendChild(l);
+    }
+
+    container.appendChild(col);
+  }
+}
+
+function setActiveCodeLines(lines){
+  document.querySelectorAll(".code-line").forEach(el => el.classList.remove("active"));
+  lines.forEach(no => {
+    const el = document.getElementById(`code-line-${no}`);
+    if(el) el.classList.add("active");
+  });
+}
+
+function initGame(){
+  const newList = makeRandomList();
+  state = {
+    list: [...newList],
+    initialList: [...newList],
+    pass: 0,
+    j: 0,
+    history: [],
+    finished: false,
+    busy: false,
+    flashFixed: null
+  };
+  initCodePanel();
+  render();
+}
+
+function saveHistory(){
+  state.history.push(JSON.stringify({
+    list:[...state.list],
+    initialList:[...state.initialList],
+    pass:state.pass,
+    j:state.j,
+    finished:state.finished,
+    flashFixed:state.flashFixed
+  }));
+}
+
+function undo(){
+  if(state.history.length === 0 || state.busy) return;
+  const prev = JSON.parse(state.history.pop());
+  state.list = prev.list;
+  state.initialList = prev.initialList;
+  state.pass = prev.pass;
+  state.j = prev.j;
+  state.finished = prev.finished;
+  state.flashFixed = prev.flashFixed;
+  state.busy = false;
+  initCodePanel();
+  render();
+}
+
+function currentRightFixedStart(){
+  return state.list.length - state.pass;
+}
+
+function fixedRankText(idx){
+  const rank = state.list.length - idx;
+  if(rank === 1) return "最大要素は確定";
+  if(rank === 2) return "第二位の要素は確定";
+  if(rank === 3) return "第三位の要素は確定";
+  if(rank === 4) return "第四位の要素は確定";
+  if(rank === 5) return "第五位の要素は確定";
+  return `第${rank}位の要素は確定`;
+}
+
+function render(){
+  const listContainer = document.getElementById("list-container");
+  listContainer.innerHTML = "";
+
+  state.list.forEach((val, idx) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.idx = idx;
+
+    const topMarker = document.createElement("div");
+    topMarker.className = "top-marker";
+    if(!state.finished && idx === state.j){
+      topMarker.innerHTML = `<span style="color:${getCss('--blue')}">左のカード</span>`;
+    } else if(!state.finished && idx === state.j + 1){
+      topMarker.innerHTML = `<span style="color:${getCss('--green')}">右のカード</span>`;
+    } else {
+      topMarker.innerHTML = "&nbsp;";
+    }
+    cell.appendChild(topMarker);
+
+    const card = document.createElement("div");
+    const classes = ["card"];
+    if(!state.finished && idx === state.j) classes.push("compare-left");
+    if(!state.finished && idx === state.j + 1) classes.push("compare-right");
+    if(idx >= currentRightFixedStart() && !state.finished) classes.push("fixed");
+    if(idx === state.flashFixed) classes.push("done-flash");
+    card.className = classes.join(" ");
+    card.textContent = val;
+    card.id = `card-list-${idx}`;
+    cell.appendChild(card);
+
+    const indexLabel = document.createElement("div");
+    indexLabel.className = "index-label";
+    indexLabel.textContent = `list[${idx + 1}]`;
+    cell.appendChild(indexLabel);
+
+    const bottom = document.createElement("div");
+    bottom.className = "bottom-marker";
+
+    if(!state.finished && idx === state.j){
+      bottom.innerHTML = `<div class="j-marker-left">↑j</div>`;
+    } else if(!state.finished && idx === state.j + 1){
+      bottom.innerHTML = `<div class="j-marker-right">↑j+1</div>`;
+    } else if(idx >= currentRightFixedStart() && !state.finished){
+      bottom.innerHTML = `<div class="fixed-label">${fixedRankText(idx)}</div>`;
+    } else {
+      bottom.innerHTML = "&nbsp;";
+    }
+    cell.appendChild(bottom);
+
+    listContainer.appendChild(cell);
+  });
+
+  updateHint();
+  updateCompareHighlight();
+  updateCodeHighlight();
+
+  document.getElementById("backBtn").disabled = state.history.length === 0 || state.busy;
+  document.getElementById("swapBtn").disabled = state.finished || state.busy;
+  document.getElementById("keepBtn").disabled = state.finished || state.busy;
+}
+
+function updateHint(){
+  const hint = document.getElementById("hint-text");
+
+  if(state.finished){
+    hint.innerHTML = "✨ おめでとうございます。バブルソート完了です。右端から順に、大きい値が確定していきました。✨";
+    return;
+  }
+
+  const a = state.list[state.j];
+  const b = state.list[state.j + 1];
+  const passNo = state.pass + 1;
+  const totalPass = state.list.length - 1;
+
+  hint.innerHTML =
+    `【${passNo} 回目 / ${totalPass} 回目】今は <b>list[${state.j + 1}] = ${a}</b> と <b>list[${state.j + 2}] = ${b}</b> を比べます。` +
+    `<br>左のほうが大きければ <b>交換する</b>、大きくなければ <b>そのまま</b> を押してください。`;
+}
+
+function updateCodeHighlight(){
+  if(state.finished){
+    setActiveCodeLines([6]);
+    return;
+  }
+
+  const a = state.list[state.j];
+  const b = state.list[state.j + 1];
+  if(a > b){
+    setActiveCodeLines([2,3,4,5]);
+  } else {
+    setActiveCodeLines([2,3,4]);
+  }
+}
+
+function updateCompareHighlight(){
+  const highlight = document.getElementById("compare-highlight");
+  const label = document.getElementById("compare-label");
+  const wrapper = document.getElementById("list-wrapper");
+  const left = document.getElementById(`card-list-${state.j}`);
+  const right = document.getElementById(`card-list-${state.j + 1}`);
+
+  if(state.finished || !left || !right){
+    highlight.style.display = "none";
+    label.style.display = "none";
+    return;
+  }
+
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const leftRect = left.getBoundingClientRect();
+  const rightRect = right.getBoundingClientRect();
+
+  const x = leftRect.left - wrapperRect.left - 14;
+  const y = leftRect.top - wrapperRect.top - 54;
+  const width = rightRect.right - leftRect.left + 28;
+  const height = leftRect.height + 172;
+
+  highlight.style.display = "block";
+  highlight.style.left = `${x}px`;
+  highlight.style.top = `${y}px`;
+  highlight.style.width = `${width}px`;
+  highlight.style.height = `${height}px`;
+
+  label.style.display = "block";
+  label.style.left = `${x + width / 2 - label.offsetWidth / 2}px`;
+  label.style.top = `${y - 46}px`;
+}
+
+function ensureAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(audioCtx.state === "suspended"){
+    audioCtx.resume();
+  }
+}
+
+function playSwapSound(){
+  ensureAudio();
+  const now = audioCtx.currentTime;
+
+  const master = audioCtx.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+  master.connect(audioCtx.destination);
+
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  const osc3 = audioCtx.createOscillator();
+
+  osc1.type = "triangle";
+  osc2.type = "sine";
+  osc3.type = "sine";
+
+  osc1.frequency.setValueAtTime(740, now);
+  osc1.frequency.exponentialRampToValueAtTime(1175, now + 0.18);
+  osc1.frequency.exponentialRampToValueAtTime(1480, now + 0.34);
+
+  osc2.frequency.setValueAtTime(1110, now);
+  osc2.frequency.exponentialRampToValueAtTime(1760, now + 0.22);
+
+  osc3.frequency.setValueAtTime(1480, now + 0.06);
+  osc3.frequency.exponentialRampToValueAtTime(2350, now + 0.24);
+
+  const g1 = audioCtx.createGain();
+  const g2 = audioCtx.createGain();
+  const g3 = audioCtx.createGain();
+
+  g1.gain.value = 0.9;
+  g2.gain.value = 0.35;
+  g3.gain.value = 0.18;
+
+  osc1.connect(g1).connect(master);
+  osc2.connect(g2).connect(master);
+  osc3.connect(g3).connect(master);
+
+  osc1.start(now);
+  osc2.start(now);
+  osc3.start(now + 0.06);
+
+  osc1.stop(now + 0.36);
+  osc2.stop(now + 0.28);
+  osc3.stop(now + 0.24);
+}
+
+function chooseSwap(){
+  if(state.finished || state.busy) return;
+  const a = state.list[state.j];
+  const b = state.list[state.j + 1];
+  if(!(a > b)) return;
+  saveHistory();
+  playSwapSound();
+  animateSwap(state.j, state.j + 1, true);
+}
+
+function chooseKeep(){
+  if(state.finished || state.busy) return;
+  const a = state.list[state.j];
+  const b = state.list[state.j + 1];
+  if(a > b) return;
+  saveHistory();
+  advanceStep(false);
+}
+
+function animateSwap(leftIdx, rightIdx, doSwap){
+  state.busy = true;
+
+  const wrapper = document.getElementById("list-wrapper");
+  const layer = document.getElementById("swap-layer");
+  layer.innerHTML = "";
+
+  const leftCard = document.getElementById(`card-list-${leftIdx}`);
+  const rightCard = document.getElementById(`card-list-${rightIdx}`);
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const lRect = leftCard.getBoundingClientRect();
+  const rRect = rightCard.getBoundingClientRect();
+
+  leftCard.style.visibility = "hidden";
+  rightCard.style.visibility = "hidden";
+
+  const flyA = document.createElement("div");
+  flyA.className = "flying-card";
+  flyA.textContent = state.list[leftIdx];
+
+  const flyB = document.createElement("div");
+  flyB.className = "flying-card";
+  flyB.textContent = state.list[rightIdx];
+
+  layer.appendChild(flyA);
+  layer.appendChild(flyB);
+
+  const sx1 = lRect.left - wrapperRect.left;
+  const sy1 = lRect.top - wrapperRect.top;
+  const sx2 = rRect.left - wrapperRect.left;
+  const sy2 = rRect.top - wrapperRect.top;
+
+  flyA.style.left = `${sx1}px`;
+  flyA.style.top = `${sy1}px`;
+  flyB.style.left = `${sx2}px`;
+  flyB.style.top = `${sy2}px`;
+
+  const dx = sx2 - sx1;
+  const duration = 850;
+  const arc = 58;
+
+  function step(tsStart){
+    return function frame(tsNow){
+      const t = Math.min((tsNow - tsStart) / duration, 1);
+      const ease = 0.5 - Math.cos(Math.PI * t) / 2;
+
+      const x1 = sx1 + dx * ease;
+      const x2 = sx2 - dx * ease;
+      const yOffset = Math.sin(Math.PI * t) * arc;
+
+      flyA.style.left = `${x1}px`;
+      flyA.style.top = `${sy1 + yOffset}px`;
+
+      flyB.style.left = `${x2}px`;
+      flyB.style.top = `${sy2 - yOffset}px`;
+
+      if(t < 1){
+        requestAnimationFrame(frame);
+      }else{
+        if(doSwap){
+          const temp = state.list[leftIdx];
+          state.list[leftIdx] = state.list[rightIdx];
+          state.list[rightIdx] = temp;
+        }
+        layer.innerHTML = "";
+        state.busy = false;
+        advanceStep(true);
+      }
+    };
+  }
+
+  requestAnimationFrame((start) => {
+    requestAnimationFrame(step(start));
+  });
+}
+
+function advanceStep(swapped){
+  const limit = state.list.length - 1 - state.pass;
+
+  if(state.j < limit - 1){
+    state.j += 1;
+    initCodePanel();
+    render();
+    return;
+  }
+
+  state.flashFixed = limit;
+  initCodePanel();
+  render();
+
+  setTimeout(() => {
+    state.flashFixed = null;
+    state.pass += 1;
+    state.j = 0;
+
+    if(state.pass >= state.list.length - 1){
+      state.finished = true;
+    }
+
+    initCodePanel();
+    render();
+  }, swapped ? 600 : 450);
+}
+
+function getCss(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+window.addEventListener("resize", updateCompareHighlight);
+
+initGame();
+</script>
+</body>
+</html>
