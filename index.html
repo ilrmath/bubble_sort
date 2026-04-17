@@ -451,7 +451,7 @@
 </head>
 <body>
   <div class="header">
-    <h1>バブルソート(添字は1から)</h1>
+    <h1>バブルソート 体感学習</h1>
     <div id="hint-text">読み込み中...</div>
     <div class="controls">
       <button id="backBtn" onclick="undo()">一つ戻る</button>
@@ -685,9 +685,9 @@ function render(){
     bottom.className = "bottom-marker";
 
     if(!state.finished && idx === state.j){
-      bottom.innerHTML = `<div class="j-marker-left">↑j</div>`;
+      bottom.innerHTML = `<div class="j-marker-left">↑添字j</div>`;
     } else if(!state.finished && idx === state.j + 1){
-      bottom.innerHTML = `<div class="j-marker-right">↑j+1</div>`;
+      bottom.innerHTML = `<div class="j-marker-right">↑添字j+1</div>`;
     } else if(idx >= currentRightFixedStart() && !state.finished){
       bottom.innerHTML = `<div class="fixed-label">${fixedRankText(idx)}</div>`;
     } else {
