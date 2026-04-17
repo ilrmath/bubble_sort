@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -491,7 +490,7 @@ const pseudocode = [
   { no: 1, depth: 0, text: '', endDepths: [] },
   { no: 2, depth: 0, text: 'i を 1 から 要素数(list)-1 まで 1 ずつ増やしながら', endDepths: [] },
   { no: 3, depth: 1, text: 'j を 1 から 要素数(list)-i まで 1 ずつ増やしながら', endDepths: [] },
-  { no: 4, depth: 2, text: 'もし list[j] > list[j+1] ならば', endDepths: [] },
+  { no: 4, depth: 2, text: 'もし list[j] < list[j+1] ならば', endDepths: [] },
   { no: 5, depth: 3, text: 'list[j] と list[j+1] を交換する', endDepths: [1,2,3] },
   { no: 6, depth: 0, text: 'list を表示する', endDepths: [] }
 ];
@@ -545,11 +544,7 @@ function initCodePanel(){
 
     const text = document.createElement("div");
     text.className = "code-text";
-    if(line.no === 5){
-      text.textContent = line.text;
-    } else {
-      text.textContent = line.text;
-    }
+    text.textContent = line.text;
 
     body.appendChild(indentArea);
     body.appendChild(text);
@@ -571,10 +566,7 @@ function renderIndent(container, depth, endDepths){
 
     const v = document.createElement("div");
     v.className = "indent-v";
-
-    // ★ここを変更：| 表示
     v.style.borderLeft = "3px solid #444";
-
     col.appendChild(v);
 
     const isEnd = endDepths.includes(d);
@@ -582,10 +574,7 @@ function renderIndent(container, depth, endDepths){
     if(isEnd){
       const l = document.createElement("div");
       l.className = "indent-l";
-
-      // ★∟ の横線を強調
       l.style.borderBottom = "3px solid #444";
-
       col.appendChild(l);
     }
 
@@ -648,12 +637,12 @@ function currentRightFixedStart(){
 
 function fixedRankText(idx){
   const rank = state.list.length - idx;
-  if(rank === 1) return "最大要素は確定";
-  if(rank === 2) return "第二位の要素は確定";
-  if(rank === 3) return "第三位の要素は確定";
-  if(rank === 4) return "第四位の要素は確定";
-  if(rank === 5) return "第五位の要素は確定";
-  return `第${rank}位の要素は確定`;
+  if(rank === 1) return "最小要素は確定";
+  if(rank === 2) return "第二小の要素は確定";
+  if(rank === 3) return "第三小の要素は確定";
+  if(rank === 4) return "第四小の要素は確定";
+  if(rank === 5) return "第五小の要素は確定";
+  return `第${rank}小の要素は確定`;
 }
 
 function render(){
@@ -722,7 +711,7 @@ function updateHint(){
   const hint = document.getElementById("hint-text");
 
   if(state.finished){
-    hint.innerHTML = "✨ おめでとうございます。バブルソート完了です。右端から順に、大きい値が確定していきました。✨";
+    hint.innerHTML = "✨ おめでとうございます。バブルソート完了です。右端から順に、小さい値が確定していきました。✨";
     return;
   }
 
@@ -733,7 +722,7 @@ function updateHint(){
 
   hint.innerHTML =
     `【${passNo} 回目 / ${totalPass} 回目】今は <b>list[${state.j + 1}] = ${a}</b> と <b>list[${state.j + 2}] = ${b}</b> を比べます。` +
-    `<br>左のほうが大きければ <b>交換する</b>、大きくなければ <b>そのまま</b> を押してください。`;
+    `<br>左のほうが小さければ <b>交換する</b>、小さくなければ <b>そのまま</b> を押してください。`;
 }
 
 function updateCodeHighlight(){
@@ -744,7 +733,7 @@ function updateCodeHighlight(){
 
   const a = state.list[state.j];
   const b = state.list[state.j + 1];
-  if(a > b){
+  if(a < b){
     setActiveCodeLines([2,3,4,5]);
   } else {
     setActiveCodeLines([2,3,4]);
@@ -846,7 +835,7 @@ function chooseSwap(){
   if(state.finished || state.busy) return;
   const a = state.list[state.j];
   const b = state.list[state.j + 1];
-  if(!(a > b)) return;
+  if(!(a < b)) return;
   saveHistory();
   playSwapSound();
   animateSwap(state.j, state.j + 1, true);
@@ -856,7 +845,7 @@ function chooseKeep(){
   if(state.finished || state.busy) return;
   const a = state.list[state.j];
   const b = state.list[state.j + 1];
-  if(a > b) return;
+  if(a < b) return;
   saveHistory();
   advanceStep(false);
 }
